@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="script.js"></script>
+    <title>Blog Pessoal | Preguss</title>
+</head>
+<body onload="checkPassword()">
+    <main id="main-content" style="display: none;">
+        <section class="hero">
+            <figure class="preguss-pfp">
+                <img src="images/preguss.png" alt="Preguss Profile Picture">
+            </figure>
+            <header class="hero-text">
+                <h1>Blog Pessoal</h1>
+                <p>Esta seção é dedicada ao criador do site para compartilhar pensamentos, ideias e atualizações pessoais.</p>
+            </header>
+            <nav class="hero-social">
+                <a href="index.html">Voltar ao Portfólio</a>
+                <a href="#" onclick="enterCreatorMode()">Modo Criador</a>
+                <a href="#" onclick="skipPassword()">Pular Senha (Teste)</a>
+            </nav>
+        </section>
+
+        <section class="creator-mode" id="creator-mode" style="display: none;">
+            <h2>Modo Criador</h2>
+            <button onclick="showCreateForm()">Criar Novo Post</button>
+            <div id="create-form" style="display: none;">
+                <h3>Criar Novo Post</h3>
+                <form id="post-form">
+                    <label for="post-title">Título:</label>
+                    <input type="text" id="post-title" required>
+                    
+                    <label for="post-content">Conteúdo:</label>
+                    <textarea id="post-content" required></textarea>
+                    
+                    <label for="post-color">Cor de Fundo:</label>
+                    <input type="color" id="post-color" value="#ffffff">
+                    
+                    <label for="post-image">URL da Imagem (opcional):</label>
+                    <input type="url" id="post-image" placeholder="https://exemplo.com/imagem.jpg">
+                    
+                    <label for="post-text-color">Cor do Texto:</label>
+                    <input type="color" id="post-text-color" value="#000000">
+                    
+                    <button type="submit">Publicar Post</button>
+                    <button type="button" onclick="cancelEdit()">Cancelar</button>
+                </form>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 Preguss.</p>
+    </footer>
+</body>
+</html>
