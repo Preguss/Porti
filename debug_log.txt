@@ -1,0 +1,119 @@
+Iniciando auto-push 
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	new file:   auto_push.bat
+	new file:   auto_push_log.txt
+	new file:   debug_log.txt
+	modified:   index.html
+	modified:   script.js
+
+[master ebe09d7] Auto-commit 20/01/2026 16:36:50,31
+ 5 files changed, 27 insertions(+), 5 deletions(-)
+ create mode 100644 auto_push.bat
+ create mode 100644 auto_push_log.txt
+ create mode 100644 debug_log.txt
+To https://github.com/Preguss/Porti.git
+   cb770a9..ebe09d7  master -> master
+Auto-push concluido em 20/01/2026 16:36:51,99 
+Iniciando auto-push 
+warning: in the working copy of 'debug_log.txt', LF will be replaced by CRLF the next time Git touches it
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   debug_log.txt
+	modified:   index.html
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   debug_log.txt
+
+[master 20a9043] Auto-commit 20/01/2026 16:39:43,70
+ 2 files changed, 22 insertions(+), 1 deletion(-)
+To https://github.com/Preguss/Porti.git
+   ebe09d7..20a9043  master -> master
+Auto-push concluido em 20/01/2026 16:39:45,41 
+Iniciando auto-push 
+warning: in the working copy of 'debug_log.txt', LF will be replaced by CRLF the next time Git touches it
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   debug_log.txt
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   debug_log.txt
+
+[master 59b4784] Auto-commit 20/01/2026 16:41:07,36
+ 1 file changed, 20 insertions(+)
+To https://github.com/Preguss/Porti.git
+   20a9043..59b4784  master -> master
+Auto-push concluido em 20/01/2026 16:41:09,29 
+Iniciando auto-push 
+warning: in the working copy of 'debug_log.txt', LF will be replaced by CRLF the next time Git touches it
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   debug_log.txt
+	modified:   index.html
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   debug_log.txt
+
+[master eb0d9d9] Auto-commit 20/01/2026 16:45:48,55
+ 2 files changed, 20 insertions(+), 1 deletion(-)
+To https://github.com/Preguss/Porti.git
+   59b4784..eb0d9d9  master -> master
+Auto-push concluido em 20/01/2026 16:45:50,30 
+Iniciando auto-push 
+warning: in the working copy of 'debug_log.txt', LF will be replaced by CRLF the next time Git touches it
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   debug_log.txt
+	modified:   index.html
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   debug_log.txt
+
+[master 6854ff9] Auto-commit 20/01/2026 16:50:44,17
+ 2 files changed, 21 insertions(+), 1 deletion(-)
+To https://github.com/Preguss/Porti.git
+   eb0d9d9..6854ff9  master -> master
+Auto-push concluido em 20/01/2026 16:50:46,10 
+Iniciando auto-push 
+warning: in the working copy of 'debug_log.txt', LF will be replaced by CRLF the next time Git touches it
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   debug_log.txt
+	modified:   index.html
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   debug_log.txt
+
+[master 34dcd76] Auto-commit 20/01/2026 17:10:39,57
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+To https://github.com/Preguss/Porti.git
+   bddadb0..34dcd76  master -> master
+Auto-push concluido em 20/01/2026 17:10:41,42 
