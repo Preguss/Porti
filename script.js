@@ -79,18 +79,106 @@ function setImageAlign(align) {
     updatePreview();
 }
 
+function compressImage(file, callback, maxSizeMB = 0.5) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            
+            // Reduzir tamanho se imagem muito grande
+            if (width > 1920 || height > 1920) {
+                const scale = Math.min(1920 / width, 1920 / height);
+                width = width * scale;
+                height = height * scale;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Comprimir com qualidade reduzida até atingir tamanho desejado
+            let quality = 0.85;
+            let compressedData = canvas.toDataURL('image/jpeg', quality);
+            
+            // Se ainda estiver grande, reduzir qualidade
+            while (compressedData.length / 1024 / 1024 > maxSizeMB && quality > 0.1) {
+                quality -= 0.1;
+                compressedData = canvas.toDataURL('image/jpeg', quality);
+            }
+            
+            callback(compressedData);
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
 function handleImageUpload() {
     const fileInput = document.getElementById("post-image-file");
     const file = fileInput.files[0];
     if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            // Armazenar a imagem em base64
-            window.uploadedImageData = e.target.result;
+        // Comprimir para máximo 0.5MB
+        compressImage(file, function(compressedData) {
+            window.uploadedImageData = compressedData;
             updatePreview();
-        };
-        reader.readAsDataURL(file);
+            savePostDraftToLocalStorage();
+        }, 0.5);
     }
+}
+
+function savePostDraftToLocalStorage() {
+    const draft = {
+        title: document.getElementById("post-title").value,
+        subject: document.getElementById("post-subject").value,
+        content: document.getElementById("post-content").value,
+        category: document.getElementById("post-category").value,
+        color: document.getElementById("post-color").value,
+        textColor: document.getElementById("post-text-color").value,
+        textAlign: document.getElementById("post-text-align").value,
+        imagePosition: document.getElementById("post-image-position").value,
+        imageAlign: document.getElementById("post-image-align").value,
+        image: window.uploadedImageData || document.getElementById("post-image-url").value,
+        timestamp: new Date().getTime()
+    };
+    localStorage.setItem('postDraft', JSON.stringify(draft));
+}
+
+function restorePostDraftFromLocalStorage() {
+    const draft = localStorage.getItem('postDraft');
+    if (draft) {
+        try {
+            const data = JSON.parse(draft);
+            document.getElementById("post-title").value = data.title || "";
+            document.getElementById("post-subject").value = data.subject || "";
+            document.getElementById("post-content").value = data.content || "";
+            document.getElementById("post-category").value = data.category || "";
+            document.getElementById("post-color").value = data.color || "#ffffff";
+            document.getElementById("post-text-color").value = data.textColor || "#000000";
+            document.getElementById("post-text-align").value = data.textAlign || "left";
+            document.getElementById("post-image-position").value = data.imagePosition || "top";
+            document.getElementById("post-image-align").value = data.imageAlign || "center";
+            
+            if (data.image && data.image.startsWith('data:')) {
+                window.uploadedImageData = data.image;
+            } else if (data.image) {
+                document.getElementById("post-image-url").value = data.image;
+            }
+            
+            updatePreview();
+            console.log("Rascunho do post restaurado!");
+        } catch (error) {
+            console.error("Erro ao restaurar rascunho:", error);
+        }
+    }
+}
+
+function clearPostDraft() {
+    localStorage.removeItem('postDraft');
 }
 
 function accessBlog() {
@@ -123,21 +211,9 @@ function checkPassword() {
 
 function showCreateForm() {
     document.getElementById("create-form").style.display = "block";
-    // Limpar form
-    document.getElementById("post-form").reset();
-    document.getElementById("post-title").value = "";
-    document.getElementById("post-subject").value = "";
-    document.getElementById("post-content").value = "";
-    document.getElementById("post-category").value = "";
-    document.getElementById("post-color").value = "#ffffff";
-    document.getElementById("post-text-color").value = "#000000";
-    document.getElementById("post-text-align").value = "left";
-    document.getElementById("post-image-position").value = "top";
-    document.getElementById("post-image-align").value = "center";
-    document.getElementById("post-image-file").value = "";
-    document.getElementById("post-image-url").value = "";
-    window.uploadedImageData = null;
-    updatePreview();
+    document.getElementById("creator-posts").style.display = "none";
+    // Restaurar rascunho salvo
+    restorePostDraftFromLocalStorage();
 }
 
 function cancelEdit() {
@@ -287,6 +363,53 @@ function closePostDetail() {
     currentPostId = null;
 }
 
+async function editPost(postId) {
+    try {
+        const querySnapshot = await window.db.collection('posts').doc(postId).get();
+        const post = querySnapshot.data();
+        
+        if (post) {
+            document.getElementById("post-title").value = post.title;
+            document.getElementById("post-subject").value = post.subject;
+            document.getElementById("post-content").value = post.content;
+            document.getElementById("post-category").value = post.category || "";
+            document.getElementById("post-color").value = post.color || "#ffffff";
+            document.getElementById("post-text-color").value = post.textColor || "#000000";
+            document.getElementById("post-text-align").value = post.textAlign || "left";
+            document.getElementById("post-image-position").value = post.imagePosition || "top";
+            document.getElementById("post-image-align").value = post.imageAlign || "center";
+            
+            if (post.image) {
+                document.getElementById("post-image-url").value = post.image;
+                window.uploadedImageData = post.image;
+            }
+            
+            const form = document.getElementById("post-form");
+            form.setAttribute("data-edit-id", postId);
+            
+            updatePreview();
+            document.getElementById("creator-posts").style.display = "none";
+            document.getElementById("create-form").style.display = "block";
+        }
+    } catch (error) {
+        console.error("Erro ao editar post:", error);
+        alert("Erro ao carregar post para edição.");
+    }
+}
+
+async function deletePost(postId) {
+    if (confirm("Tem certeza que deseja excluir este post?")) {
+        try {
+            await window.db.collection('posts').doc(postId).delete();
+            alert("Post excluído!");
+            loadPosts(true);
+        } catch (error) {
+            console.error("Erro ao excluir post:", error);
+            alert("Erro ao excluir post.");
+        }
+    }
+}
+
 function enterCreatorMode() {
     const password = prompt("Digite a senha do criador:");
     if (password === null) return;
@@ -306,6 +429,39 @@ function exitCreatorMode() {
     document.getElementById("create-form").style.display = "none";
     document.getElementById("creator-posts").style.display = "none";
     loadPosts(false);
+}
+
+function showCreateForm() {
+    document.getElementById("create-form").style.display = "block";
+    document.getElementById("creator-posts").style.display = "none";
+}
+
+function viewCreatorPosts() {
+    document.getElementById("create-form").style.display = "none";
+    document.getElementById("creator-posts").style.display = "block";
+    loadPosts(true);
+}
+
+function cancelEdit() {
+    const form = document.getElementById("post-form");
+    const hasContent = document.getElementById("post-title").value || document.getElementById("post-content").value;
+    
+    if (hasContent && !confirm("Você tem dados no formulário. Deseja descartá-los?")) {
+        return;
+    }
+    
+    form.reset();
+    form.removeAttribute("data-edit-id");
+    document.getElementById("create-form").style.display = "none";
+    document.getElementById("post-color").value = "#ffffff";
+    document.getElementById("post-text-color").value = "#000000";
+    document.getElementById("post-image-file").value = "";
+    document.getElementById("post-image-url").value = "";
+    window.uploadedImageData = null;
+    currentPostId = null;
+    clearPostDraft();
+    updatePreview();
+    viewCreatorPosts();
 }
 
 async function loadPosts(isCreatorMode = false) {
@@ -354,8 +510,28 @@ async function loadPosts(isCreatorMode = false) {
 
 async function savePost(title, content) {
     try {
+        // Validar campos obrigatórios
+        if (!title || title.trim() === "") {
+            alert("Por favor, preencha o título.");
+            return;
+        }
+        if (!content || content.trim() === "") {
+            alert("Por favor, preencha o conteúdo.");
+            return;
+        }
+        
         const subject = document.getElementById("post-subject").value;
         const category = document.getElementById("post-category").value;
+        
+        if (!subject || subject.trim() === "") {
+            alert("Por favor, preencha o assunto.");
+            return;
+        }
+        if (!category || category.trim() === "") {
+            alert("Por favor, preencha a categoria.");
+            return;
+        }
+        
         const color = document.getElementById("post-color").value;
         const textColor = document.getElementById("post-text-color").value;
         const textAlign = document.getElementById("post-text-align").value;
@@ -366,7 +542,6 @@ async function savePost(title, content) {
         let image = document.getElementById("post-image-url").value;
         if (window.uploadedImageData) {
             image = window.uploadedImageData;
-            window.uploadedImageData = null; // Limpar após usar
         }
         
         const now = new Date();
@@ -391,6 +566,7 @@ async function savePost(title, content) {
                 imageAlign: imageAlign
             });
             form.removeAttribute("data-edit-id");
+            clearPostDraft();
             alert("Post editado!");
         } else {
             // Criar
@@ -408,6 +584,7 @@ async function savePost(title, content) {
                 imagePosition: imagePosition,
                 imageAlign: imageAlign
             });
+            clearPostDraft();
             alert("Post publicado!");
         }
         
@@ -415,7 +592,9 @@ async function savePost(title, content) {
         loadPosts(true);
     } catch (error) {
         console.error("Erro ao salvar post:", error);
-        alert("Erro ao publicar post.");
+        // Salvar rascunho automaticamente em caso de erro
+        savePostDraftToLocalStorage();
+        alert("Erro ao publicar post: " + error.message + "\n\nSeus dados foram salvos automaticamente. Tente novamente!");
     }
 }
 
@@ -447,14 +626,39 @@ document.addEventListener("DOMContentLoaded", function() {
         fileInput.addEventListener("change", handleImageUpload);
     }
     
-    // Event listeners para atualizar preview em tempo real
+    // Event listeners para atualizar preview em tempo real e salvar rascunho
     const titleInput = document.getElementById("post-title");
     const contentInput = document.getElementById("post-content");
     const colorInput = document.getElementById("post-color");
     const textColorInput = document.getElementById("post-text-color");
+    const subjectInput = document.getElementById("post-subject");
+    const categoryInput = document.getElementById("post-category");
     
-    if (titleInput) titleInput.addEventListener("input", updatePreview);
-    if (contentInput) contentInput.addEventListener("input", updatePreview);
-    if (colorInput) colorInput.addEventListener("input", updatePreview);
-    if (textColorInput) textColorInput.addEventListener("input", updatePreview);
+    if (titleInput) {
+        titleInput.addEventListener("input", updatePreview);
+        titleInput.addEventListener("input", savePostDraftToLocalStorage);
+    }
+    if (contentInput) {
+        contentInput.addEventListener("input", updatePreview);
+        contentInput.addEventListener("input", savePostDraftToLocalStorage);
+    }
+    if (colorInput) {
+        colorInput.addEventListener("input", updatePreview);
+        colorInput.addEventListener("input", savePostDraftToLocalStorage);
+    }
+    if (textColorInput) {
+        textColorInput.addEventListener("input", updatePreview);
+        textColorInput.addEventListener("input", savePostDraftToLocalStorage);
+    }
+    if (subjectInput) {
+        subjectInput.addEventListener("input", savePostDraftToLocalStorage);
+    }
+    if (categoryInput) {
+        categoryInput.addEventListener("input", savePostDraftToLocalStorage);
+    }
+    
+    // Restaurar rascunho ao abrir a página de blog
+    if (document.getElementById("blog-posts")) {
+        restorePostDraftFromLocalStorage();
+    }
 });
