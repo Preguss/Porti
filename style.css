@@ -254,14 +254,38 @@ footer {
 }
 
 .creator-mode button {
-    padding: 0.5rem 1rem;
+    padding: 0.6rem 1.2rem;
     background: var(--destacado);
     color: #000;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    font-family: balatro;
 }
 
 .creator-mode button:hover {
-    opacity: 0.8;
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 192, 203, 0.3);
+}
+
+.btn-back, .btn-exit-creator, .btn-create, .btn-read {
+    padding: 0.6rem 1.2rem;
+    background: var(--destacado);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    font-family: balatro;
+    margin-bottom: 1rem;
+}
+
+.btn-back:hover, .btn-exit-creator:hover, .btn-create:hover, .btn-read:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 192, 203, 0.3);
 }

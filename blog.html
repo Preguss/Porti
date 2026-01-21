@@ -22,7 +22,6 @@
             <nav class="hero-social">
                 <a href="index.html">Voltar ao Portfólio</a>
                 <a href="#" onclick="enterCreatorMode()">Modo Criador</a>
-                <a href="#" onclick="skipPassword()">Pular Senha (Teste)</a>
             </nav>
         </section>
 
@@ -31,14 +30,23 @@
         </section>
 
         <section class="post-detail" id="post-detail" style="display: none;">
-            <button onclick="closePostDetail()" style="margin-bottom: 1rem;">← Voltar</button>
+            <button class="btn-back" onclick="closePostDetail()">← Voltar</button>
             <article id="post-content-detail" style="background: rgba(255,255,255,0.2); padding: 2rem; border-radius: 10px;">
             </article>
         </section>
 
         <section class="creator-mode" id="creator-mode" style="display: none;">
-            <h2>Modo Criador</h2>
-            <button onclick="showCreateForm()">Criar Novo Post</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0;">Modo Criador</h2>
+                <button class="btn-exit-creator" onclick="exitCreatorMode()">← Voltar ao Modo Normal</button>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                <button class="btn-create" onclick="showCreateForm()">Criar Novo Post</button>
+                <button class="btn-read" onclick="viewCreatorPosts()">Ler Mais Posts</button>
+            </div>
+            <div id="creator-posts" style="display: none;">
+                <!-- Posts serão carregados aqui -->
+            </div>
             <div id="create-form" style="display: none;">
                 <h3>Criar Novo Post</h3>
                 <form id="post-form">

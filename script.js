@@ -40,14 +40,27 @@ function accessBlog() {
 }
 
 function checkPassword() {
-    const password = prompt("Digite a senha para acessar o blog:");
-    if (password === "9696") {
-        document.getElementById("main-content").style.display = "block";
-        loadPosts(false);
-    } else {
-        alert("Senha incorreta!");
-        window.location.href = "index.html";
+    let attempts = 3;
+    while (attempts > 0) {
+        const password = prompt("Digite a senha para acessar o blog:");
+        if (password === null) {
+            // Usuário clicou cancelar
+            window.location.href = "index.html";
+            return;
+        }
+        if (password === "9696") {
+            document.getElementById("main-content").style.display = "block";
+            loadPosts(false);
+            return;
+        } else {
+            attempts--;
+            if (attempts > 0) {
+                alert(`Senha incorreta! Tente novamente. (${attempts} tentativa${attempts > 1 ? 's' : ''} restante${attempts > 1 ? 's' : ''})`);
+            }
+        }
     }
+    alert("Tentativas esgotadas!");
+    window.location.href = "index.html";
 }
 
 function showCreateForm() {
@@ -66,6 +79,45 @@ function showCreateForm() {
 
 function cancelEdit() {
     document.getElementById("create-form").style.display = "none";
+}
+
+async function viewCreatorPosts() {
+    const creatorPostsDiv = document.getElementById("creator-posts");
+    const createFormDiv = document.getElementById("create-form");
+    
+    if (creatorPostsDiv.style.display === "block") {
+        creatorPostsDiv.style.display = "none";
+        return;
+    }
+    
+    createFormDiv.style.display = "none";
+    creatorPostsDiv.style.display = "block";
+    
+    try {
+        const querySnapshot = await window.db.collection('posts').orderBy('timestamp', 'desc').get();
+        const posts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        let html = "<h3>Seus Posts</h3>";
+        posts.forEach(post => {
+            const dateStr = post.date || "Data desconhecida";
+            html += `
+                <div style="background: rgba(255,255,255,0.15); padding: 1rem; margin-bottom: 1rem; border-radius: 8px; cursor: pointer;" onclick="openPostDetail('${post.id}')">
+                    <h4 style="color: var(--destacado); margin-bottom: 0.3rem;">${post.title}</h4>
+                    <p style="color: var(--txt-principal); font-size: 0.9rem; margin: 0.3rem 0;"><strong>Assunto:</strong> ${post.subject}</p>
+                    <p style="color: var(--txt-principal); font-size: 0.8rem; margin: 0; opacity: 0.7;"><em>${dateStr}</em></p>
+                    <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem;">
+                        <button class="btn-read" onclick="event.stopPropagation(); editPost('${post.id}')">Editar</button>
+                        <button class="btn-read" onclick="event.stopPropagation(); deletePost('${post.id}')">Deletar</button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        creatorPostsDiv.innerHTML = html;
+    } catch (error) {
+        console.error("Erro ao carregar posts:", error);
+        creatorPostsDiv.innerHTML = "<p>Erro ao carregar posts.</p>";
+    }
 }
 
 async function editPost(postId) {
@@ -140,13 +192,23 @@ function closePostDetail() {
 
 function enterCreatorMode() {
     const password = prompt("Digite a senha do criador:");
+    if (password === null) return;
     if (password === "9696") {
         document.getElementById("creator-mode").style.display = "block";
-        // Não ocultar blog-posts
-        loadPosts(true); // true para modo criador
+        document.getElementById("blog-posts").style.display = "none";
+        document.getElementById("post-detail").style.display = "none";
+        loadPosts(true);
     } else {
         alert("Senha incorreta!");
     }
+}
+
+function exitCreatorMode() {
+    document.getElementById("creator-mode").style.display = "none";
+    document.getElementById("blog-posts").style.display = "block";
+    document.getElementById("create-form").style.display = "none";
+    document.getElementById("creator-posts").style.display = "none";
+    loadPosts(false);
 }
 
 async function loadPosts(isCreatorMode = false) {
