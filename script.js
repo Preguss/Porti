@@ -12,6 +12,16 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 window.db = firebase.firestore();
 
+let currentPostId = null;
+
+function setColor(color, type) {
+    if (type === 'bg') {
+        document.getElementById("post-color").value = color;
+    } else if (type === 'text') {
+        document.getElementById("post-text-color").value = color;
+    }
+}
+
 function accessBlog() {
     window.location.href = "blog.html";
 }
@@ -31,6 +41,9 @@ function showCreateForm() {
     document.getElementById("create-form").style.display = "block";
     // Limpar form
     document.getElementById("post-form").reset();
+    document.getElementById("post-title").value = "";
+    document.getElementById("post-subject").value = "";
+    document.getElementById("post-content").value = "";
     document.getElementById("post-color").value = "#ffffff";
     document.getElementById("post-text-color").value = "#000000";
     document.getElementById("post-image").value = "";
@@ -46,6 +59,7 @@ async function editPost(postId) {
         if (doc.exists) {
             const post = doc.data();
             document.getElementById("post-title").value = post.title;
+            document.getElementById("post-subject").value = post.subject || "";
             document.getElementById("post-content").value = post.content;
             document.getElementById("post-color").value = post.color || "#ffffff";
             document.getElementById("post-text-color").value = post.textColor || "#000000";
@@ -72,6 +86,41 @@ async function deletePost(postId) {
     }
 }
 
+async function openPostDetail(postId) {
+    try {
+        const doc = await window.db.collection('posts').doc(postId).get();
+        if (doc.exists) {
+            currentPostId = postId;
+            const post = doc.data();
+            const detailContent = document.getElementById("post-content-detail");
+            let imageHtml = "";
+            if (post.image) {
+                imageHtml = `<img src="${post.image}" alt="Imagem do post" style="max-width: 100%; height: auto; margin-bottom: 1rem;">`;
+            }
+            detailContent.style.backgroundColor = post.color || "#ffffff";
+            detailContent.style.color = post.textColor || "#000000";
+            detailContent.innerHTML = `
+                ${imageHtml}
+                <h2>${post.title}</h2>
+                <p><strong>Assunto:</strong> ${post.subject}</p>
+                <p><em>Data: ${post.date}</em></p>
+                <hr>
+                <p>${post.content}</p>
+            `;
+            document.getElementById("blog-posts").style.display = "none";
+            document.getElementById("post-detail").style.display = "block";
+        }
+    } catch (error) {
+        console.error("Erro ao abrir post:", error);
+    }
+}
+
+function closePostDetail() {
+    document.getElementById("post-detail").style.display = "none";
+    document.getElementById("blog-posts").style.display = "block";
+    currentPostId = null;
+}
+
 function enterCreatorMode() {
     const password = prompt("Digite a senha do criador:");
     if (password === "9696") {
@@ -91,30 +140,31 @@ async function loadPosts(isCreatorMode = false) {
         // Limpar posts dinâmicos anteriores
         const dynamicPosts = blogPostsSection.querySelectorAll('.blog-post.dynamic');
         dynamicPosts.forEach(post => post.remove());
-        // Adicionar posts dinâmicos
+        // Adicionar posts dinâmicos (apenas título, data e assunto na lista)
         posts.forEach(post => {
             const article = document.createElement("article");
             article.className = "blog-post dynamic";
             article.style.backgroundColor = post.color || "#ffffff";
             article.style.color = post.textColor || "#000000";
-            let imageHtml = "";
-            if (post.image) {
-                imageHtml = `<img src="${post.image}" alt="Imagem do post" style="max-width: 100%; height: auto; margin-bottom: 1rem;">`;
-            }
+            article.style.cursor = "pointer";
+            
             let buttonsHtml = "";
             if (isCreatorMode) {
-                buttonsHtml = `
+                buttonsHtml = `<div style="margin-top: 1rem;">
                     <button onclick="editPost('${post.id}')">Editar</button>
                     <button onclick="deletePost('${post.id}')">Excluir</button>
-                `;
+                </div>`;
+            } else {
+                buttonsHtml = `<div style="margin-top: 1rem;"><button onclick="openPostDetail('${post.id}')">Ler Mais</button></div>`;
             }
+            
             article.innerHTML = `
-                ${imageHtml}
                 <h3>${post.title}</h3>
-                <p>Data e Hora: ${post.date}</p>
-                <p>${post.content}</p>
+                <p><strong>Assunto:</strong> ${post.subject}</p>
+                <p><em>Data: ${post.date}</em></p>
                 ${buttonsHtml}
             `;
+            article.style.cursor = isCreatorMode ? "default" : "pointer";
             blogPostsSection.appendChild(article);
         });
     } catch (error) {
@@ -124,6 +174,7 @@ async function loadPosts(isCreatorMode = false) {
 
 async function savePost(title, content) {
     try {
+        const subject = document.getElementById("post-subject").value;
         const color = document.getElementById("post-color").value;
         const image = document.getElementById("post-image").value;
         const textColor = document.getElementById("post-text-color").value;
@@ -138,6 +189,7 @@ async function savePost(title, content) {
             // Editar (não atualizar timestamp)
             await window.db.collection('posts').doc(editId).update({
                 title: title,
+                subject: subject,
                 content: content,
                 color: color,
                 image: image,
@@ -149,6 +201,7 @@ async function savePost(title, content) {
             // Criar
             await window.db.collection('posts').add({
                 title: title,
+                subject: subject,
                 content: content,
                 date: date,
                 timestamp: timestamp,
