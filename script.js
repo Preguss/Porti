@@ -20,14 +20,48 @@ function setColor(color, type) {
     } else if (type === 'text') {
         document.getElementById("post-text-color").value = color;
     }
+    updatePreview();
+}
+
+function updatePreview() {
+    const preview = document.getElementById("post-preview");
+    if (!preview) return;
+    
+    const title = document.getElementById("post-title").value || "Título do Post";
+    const content = document.getElementById("post-content").value || "Digite o conteúdo do seu post aqui para ver o preview...";
+    const bgColor = document.getElementById("post-color").value;
+    const textColor = document.getElementById("post-text-color").value;
+    const textAlign = document.getElementById("post-text-align").value;
+    const imageAlign = document.getElementById("post-image-align").value;
+    
+    preview.style.backgroundColor = bgColor;
+    preview.style.color = textColor;
+    
+    let imageHtml = "";
+    if (window.uploadedImageData) {
+        imageHtml = `<img src="${window.uploadedImageData}" alt="Preview" style="max-width: 200px; height: auto; margin: 0.5rem; border-radius: 5px; display: block; margin-left: ${imageAlign === 'left' ? '0' : imageAlign === 'right' ? 'auto' : 'auto'}; margin-right: ${imageAlign === 'left' ? 'auto' : imageAlign === 'right' ? '0' : 'auto'};">`;
+    }
+    
+    preview.innerHTML = `
+        <h3 style="text-align: center; margin-bottom: 1rem;">${title}</h3>
+        ${imageHtml}
+        <p style="text-align: ${textAlign}; white-space: pre-wrap;">${content.substring(0, 200)}${content.length > 200 ? '...' : ''}</p>
+    `;
 }
 
 function setAlignment(align) {
     document.getElementById("post-text-align").value = align;
+    updatePreview();
 }
 
 function setImagePosition(position) {
     document.getElementById("post-image-position").value = position;
+    updatePreview();
+}
+
+function setImageAlign(align) {
+    document.getElementById("post-image-align").value = align;
+    updatePreview();
 }
 
 function handleImageUpload() {
@@ -38,6 +72,7 @@ function handleImageUpload() {
         reader.onload = function(e) {
             // Armazenar a imagem em base64
             window.uploadedImageData = e.target.result;
+            updatePreview();
         };
         reader.readAsDataURL(file);
     }
@@ -79,14 +114,15 @@ function showCreateForm() {
     document.getElementById("post-subject").value = "";
     document.getElementById("post-content").value = "";
     document.getElementById("post-category").value = "";
-    document.getElementById("post-read-time").value = "5";
     document.getElementById("post-color").value = "#ffffff";
     document.getElementById("post-text-color").value = "#000000";
     document.getElementById("post-text-align").value = "left";
     document.getElementById("post-image-position").value = "top";
+    document.getElementById("post-image-align").value = "center";
     document.getElementById("post-image-file").value = "";
     document.getElementById("post-image-url").value = "";
     window.uploadedImageData = null;
+    updatePreview();
 }
 
 function cancelEdit() {
@@ -141,17 +177,18 @@ async function editPost(postId) {
             document.getElementById("post-subject").value = post.subject || "";
             document.getElementById("post-content").value = post.content;
             document.getElementById("post-category").value = post.category || "";
-            document.getElementById("post-read-time").value = post.readTime || 5;
             document.getElementById("post-color").value = post.color || "#ffffff";
             document.getElementById("post-text-color").value = post.textColor || "#000000";
             document.getElementById("post-text-align").value = post.textAlign || "left";
             document.getElementById("post-image-position").value = post.imagePosition || "top";
+            document.getElementById("post-image-align").value = post.imageAlign || "center";
             document.getElementById("post-image-file").value = "";
             document.getElementById("post-image-url").value = post.image || "";
             window.uploadedImageData = null;
             document.getElementById("create-form").style.display = "block";
             // Marcar como edição
             document.getElementById("post-form").setAttribute("data-edit-id", postId);
+            updatePreview();
         }
     } catch (error) {
         console.error("Erro ao editar post:", error);
@@ -181,13 +218,20 @@ async function openPostDetail(postId) {
             
             const textAlign = post.textAlign || "left";
             const imagePosition = post.imagePosition || "top";
+            const imageAlign = post.imageAlign || "center";
             const category = post.category || "Sem categoria";
-            const readTime = post.readTime || "5";
-            const likes = post.likes || 0;
             
             let imageHtml = "";
             if (post.image) {
-                imageHtml = `<img src="${post.image}" alt="Imagem do post" style="max-width: 100%; height: auto; margin: 1rem 0; border-radius: 8px;">`;
+                let imgStyle = "max-width: 100%; height: auto; margin: 1rem 0; border-radius: 8px; display: block;";
+                if (imageAlign === "left") {
+                    imgStyle += " margin-left: 0; margin-right: auto;";
+                } else if (imageAlign === "right") {
+                    imgStyle += " margin-left: auto; margin-right: 0;";
+                } else {
+                    imgStyle += " margin-left: auto; margin-right: auto;";
+                }
+                imageHtml = `<img src="${post.image}" alt="Imagem do post" style="${imgStyle}">`;
             }
             
             detailContent.style.backgroundColor = post.color || "#ffffff";
@@ -205,18 +249,16 @@ async function openPostDetail(postId) {
                     <p style="margin: 0 0 0.8rem 0; font-size: 1.1rem; opacity: 0.9;">${post.subject}</p>
                     <div style="display: flex; justify-content: center; gap: 1.5rem; font-size: 0.9rem; flex-wrap: wrap;">
                         <span>📁 ${category}</span>
-                        <span>⏱️ ${readTime} min de leitura</span>
                         <span>📅 ${post.date}</span>
-                        <span style="cursor: pointer;" onclick="toggleLike('${postId}')">❤️ ${likes} likes</span>
                     </div>
                 </div>
             `;
             
             if (imagePosition === "bottom") {
-                contentHtml += `<div style="text-align: ${textAlign};">${post.content}</div>`;
+                contentHtml += `<div style="text-align: ${textAlign}; white-space: pre-wrap;">${post.content}</div>`;
                 contentHtml += imageHtml;
             } else {
-                contentHtml += `<div style="text-align: ${textAlign};">${post.content}</div>`;
+                contentHtml += `<div style="text-align: ${textAlign}; white-space: pre-wrap;">${post.content}</div>`;
             }
             
             detailContent.innerHTML = contentHtml;
@@ -255,22 +297,6 @@ function exitCreatorMode() {
     loadPosts(false);
 }
 
-async function toggleLike(postId) {
-    try {
-        const doc = await window.db.collection('posts').doc(postId).get();
-        if (doc.exists) {
-            const currentLikes = doc.data().likes || 0;
-            await window.db.collection('posts').doc(postId).update({
-                likes: currentLikes + 1
-            });
-            // Recarregar o post para mostrar o novo contador
-            await openPostDetail(postId);
-        }
-    } catch (error) {
-        console.error("Erro ao adicionar like:", error);
-    }
-}
-
 async function loadPosts(isCreatorMode = false) {
     try {
         const querySnapshot = await window.db.collection('posts').orderBy('timestamp', 'desc').get();
@@ -279,7 +305,7 @@ async function loadPosts(isCreatorMode = false) {
         // Limpar posts dinâmicos anteriores
         const dynamicPosts = blogPostsSection.querySelectorAll('.blog-post.dynamic');
         dynamicPosts.forEach(post => post.remove());
-        // Adicionar posts dinâmicos (apenas título, data, assunto, categoria e tempo de leitura na lista)
+        // Adicionar posts dinâmicos (apenas título, data, assunto e categoria na lista)
         posts.forEach(post => {
             const article = document.createElement("article");
             article.className = "blog-post dynamic";
@@ -288,7 +314,6 @@ async function loadPosts(isCreatorMode = false) {
             article.style.cursor = "pointer";
             
             const category = post.category || "Sem categoria";
-            const readTime = post.readTime || "5";
             
             let buttonsHtml = "";
             if (isCreatorMode) {
@@ -304,7 +329,7 @@ async function loadPosts(isCreatorMode = false) {
                 <h3>${post.title}</h3>
                 <p><strong>Assunto:</strong> ${post.subject}</p>
                 <div style="font-size: 0.85rem; opacity: 0.8; margin: 0.5rem 0;">
-                    <span>📁 ${category}</span> | <span>⏱️ ${readTime} min</span> | <span>📅 ${post.date}</span>
+                    <span>📁 ${category}</span> | <span>📅 ${post.date}</span>
                 </div>
                 ${buttonsHtml}
             `;
@@ -320,11 +345,11 @@ async function savePost(title, content) {
     try {
         const subject = document.getElementById("post-subject").value;
         const category = document.getElementById("post-category").value;
-        const readTime = parseInt(document.getElementById("post-read-time").value);
         const color = document.getElementById("post-color").value;
         const textColor = document.getElementById("post-text-color").value;
         const textAlign = document.getElementById("post-text-align").value;
         const imagePosition = document.getElementById("post-image-position").value;
+        const imageAlign = document.getElementById("post-image-align").value;
         
         // Verificar se há arquivo enviado
         let image = document.getElementById("post-image-url").value;
@@ -347,13 +372,12 @@ async function savePost(title, content) {
                 subject: subject,
                 content: content,
                 category: category,
-                readTime: readTime,
                 color: color,
                 image: image,
                 textColor: textColor,
                 textAlign: textAlign,
                 imagePosition: imagePosition,
-                likes: (await window.db.collection('posts').doc(editId).get()).data().likes || 0
+                imageAlign: imageAlign
             });
             form.removeAttribute("data-edit-id");
             alert("Post editado!");
@@ -364,7 +388,6 @@ async function savePost(title, content) {
                 subject: subject,
                 content: content,
                 category: category,
-                readTime: readTime,
                 date: date,
                 timestamp: timestamp,
                 color: color,
@@ -372,7 +395,7 @@ async function savePost(title, content) {
                 textColor: textColor,
                 textAlign: textAlign,
                 imagePosition: imagePosition,
-                likes: 0
+                imageAlign: imageAlign
             });
             alert("Post publicado!");
         }
@@ -402,6 +425,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 document.getElementById("post-image-file").value = "";
                 document.getElementById("post-image-url").value = "";
                 window.uploadedImageData = null;
+                updatePreview();
             }
         });
     }
@@ -411,4 +435,15 @@ document.addEventListener("DOMContentLoaded", function() {
     if (fileInput) {
         fileInput.addEventListener("change", handleImageUpload);
     }
+    
+    // Event listeners para atualizar preview em tempo real
+    const titleInput = document.getElementById("post-title");
+    const contentInput = document.getElementById("post-content");
+    const colorInput = document.getElementById("post-color");
+    const textColorInput = document.getElementById("post-text-color");
+    
+    if (titleInput) titleInput.addEventListener("input", updatePreview);
+    if (contentInput) contentInput.addEventListener("input", updatePreview);
+    if (colorInput) colorInput.addEventListener("input", updatePreview);
+    if (textColorInput) textColorInput.addEventListener("input", updatePreview);
 });
