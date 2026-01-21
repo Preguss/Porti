@@ -22,6 +22,19 @@ function setColor(color, type) {
     }
 }
 
+function handleImageUpload() {
+    const fileInput = document.getElementById("post-image-file");
+    const file = fileInput.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // Armazenar a imagem em base64
+            window.uploadedImageData = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
 function accessBlog() {
     window.location.href = "blog.html";
 }
@@ -46,7 +59,9 @@ function showCreateForm() {
     document.getElementById("post-content").value = "";
     document.getElementById("post-color").value = "#ffffff";
     document.getElementById("post-text-color").value = "#000000";
-    document.getElementById("post-image").value = "";
+    document.getElementById("post-image-file").value = "";
+    document.getElementById("post-image-url").value = "";
+    window.uploadedImageData = null;
 }
 
 function cancelEdit() {
@@ -63,7 +78,9 @@ async function editPost(postId) {
             document.getElementById("post-content").value = post.content;
             document.getElementById("post-color").value = post.color || "#ffffff";
             document.getElementById("post-text-color").value = post.textColor || "#000000";
-            document.getElementById("post-image").value = post.image || "";
+            document.getElementById("post-image-file").value = "";
+            document.getElementById("post-image-url").value = post.image || "";
+            window.uploadedImageData = null;
             document.getElementById("create-form").style.display = "block";
             // Marcar como edição
             document.getElementById("post-form").setAttribute("data-edit-id", postId);
@@ -176,8 +193,15 @@ async function savePost(title, content) {
     try {
         const subject = document.getElementById("post-subject").value;
         const color = document.getElementById("post-color").value;
-        const image = document.getElementById("post-image").value;
         const textColor = document.getElementById("post-text-color").value;
+        
+        // Verificar se há arquivo enviado
+        let image = document.getElementById("post-image-url").value;
+        if (window.uploadedImageData) {
+            image = window.uploadedImageData;
+            window.uploadedImageData = null; // Limpar após usar
+        }
+        
         const now = new Date();
         const date = now.toLocaleString("pt-BR");
         const timestamp = now.getTime();
@@ -234,8 +258,16 @@ document.addEventListener("DOMContentLoaded", function() {
                 // Resetar cores para padrão
                 document.getElementById("post-color").value = "#ffffff";
                 document.getElementById("post-text-color").value = "#000000";
-                document.getElementById("post-image").value = "";
+                document.getElementById("post-image-file").value = "";
+                document.getElementById("post-image-url").value = "";
+                window.uploadedImageData = null;
             }
         });
+    }
+    
+    // Event listener para upload de arquivo
+    const fileInput = document.getElementById("post-image-file");
+    if (fileInput) {
+        fileInput.addEventListener("change", handleImageUpload);
     }
 });
