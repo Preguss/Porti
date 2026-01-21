@@ -22,6 +22,14 @@ function setColor(color, type) {
     }
 }
 
+function setAlignment(align) {
+    document.getElementById("post-text-align").value = align;
+}
+
+function setImagePosition(position) {
+    document.getElementById("post-image-position").value = position;
+}
+
 function handleImageUpload() {
     const fileInput = document.getElementById("post-image-file");
     const file = fileInput.files[0];
@@ -70,8 +78,12 @@ function showCreateForm() {
     document.getElementById("post-title").value = "";
     document.getElementById("post-subject").value = "";
     document.getElementById("post-content").value = "";
+    document.getElementById("post-category").value = "";
+    document.getElementById("post-read-time").value = "5";
     document.getElementById("post-color").value = "#ffffff";
     document.getElementById("post-text-color").value = "#000000";
+    document.getElementById("post-text-align").value = "left";
+    document.getElementById("post-image-position").value = "top";
     document.getElementById("post-image-file").value = "";
     document.getElementById("post-image-url").value = "";
     window.uploadedImageData = null;
@@ -128,8 +140,12 @@ async function editPost(postId) {
             document.getElementById("post-title").value = post.title;
             document.getElementById("post-subject").value = post.subject || "";
             document.getElementById("post-content").value = post.content;
+            document.getElementById("post-category").value = post.category || "";
+            document.getElementById("post-read-time").value = post.readTime || 5;
             document.getElementById("post-color").value = post.color || "#ffffff";
             document.getElementById("post-text-color").value = post.textColor || "#000000";
+            document.getElementById("post-text-align").value = post.textAlign || "left";
+            document.getElementById("post-image-position").value = post.imagePosition || "top";
             document.getElementById("post-image-file").value = "";
             document.getElementById("post-image-url").value = post.image || "";
             window.uploadedImageData = null;
@@ -162,20 +178,48 @@ async function openPostDetail(postId) {
             currentPostId = postId;
             const post = doc.data();
             const detailContent = document.getElementById("post-content-detail");
+            
+            const textAlign = post.textAlign || "left";
+            const imagePosition = post.imagePosition || "top";
+            const category = post.category || "Sem categoria";
+            const readTime = post.readTime || "5";
+            const likes = post.likes || 0;
+            
             let imageHtml = "";
             if (post.image) {
-                imageHtml = `<img src="${post.image}" alt="Imagem do post" style="max-width: 100%; height: auto; margin-bottom: 1rem;">`;
+                imageHtml = `<img src="${post.image}" alt="Imagem do post" style="max-width: 100%; height: auto; margin: 1rem 0; border-radius: 8px;">`;
             }
+            
             detailContent.style.backgroundColor = post.color || "#ffffff";
             detailContent.style.color = post.textColor || "#000000";
-            detailContent.innerHTML = `
-                ${imageHtml}
-                <h2>${post.title}</h2>
-                <p><strong>Assunto:</strong> ${post.subject}</p>
-                <p><em>Data: ${post.date}</em></p>
-                <hr>
-                <p>${post.content}</p>
+            detailContent.style.textAlign = "left";
+            
+            let contentHtml = "";
+            if (imagePosition === "top") {
+                contentHtml = imageHtml;
+            }
+            
+            contentHtml += `
+                <div style="text-align: center; border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 1rem; margin-bottom: 1rem;">
+                    <h2 style="margin: 0 0 0.5rem 0; font-size: 1.8rem;">${post.title}</h2>
+                    <p style="margin: 0 0 0.8rem 0; font-size: 1.1rem; opacity: 0.9;">${post.subject}</p>
+                    <div style="display: flex; justify-content: center; gap: 1.5rem; font-size: 0.9rem; flex-wrap: wrap;">
+                        <span>📁 ${category}</span>
+                        <span>⏱️ ${readTime} min de leitura</span>
+                        <span>📅 ${post.date}</span>
+                        <span style="cursor: pointer;" onclick="toggleLike('${postId}')">❤️ ${likes} likes</span>
+                    </div>
+                </div>
             `;
+            
+            if (imagePosition === "bottom") {
+                contentHtml += `<div style="text-align: ${textAlign};">${post.content}</div>`;
+                contentHtml += imageHtml;
+            } else {
+                contentHtml += `<div style="text-align: ${textAlign};">${post.content}</div>`;
+            }
+            
+            detailContent.innerHTML = contentHtml;
             document.getElementById("blog-posts").style.display = "none";
             document.getElementById("post-detail").style.display = "block";
         }
@@ -211,6 +255,22 @@ function exitCreatorMode() {
     loadPosts(false);
 }
 
+async function toggleLike(postId) {
+    try {
+        const doc = await window.db.collection('posts').doc(postId).get();
+        if (doc.exists) {
+            const currentLikes = doc.data().likes || 0;
+            await window.db.collection('posts').doc(postId).update({
+                likes: currentLikes + 1
+            });
+            // Recarregar o post para mostrar o novo contador
+            await openPostDetail(postId);
+        }
+    } catch (error) {
+        console.error("Erro ao adicionar like:", error);
+    }
+}
+
 async function loadPosts(isCreatorMode = false) {
     try {
         const querySnapshot = await window.db.collection('posts').orderBy('timestamp', 'desc').get();
@@ -219,7 +279,7 @@ async function loadPosts(isCreatorMode = false) {
         // Limpar posts dinâmicos anteriores
         const dynamicPosts = blogPostsSection.querySelectorAll('.blog-post.dynamic');
         dynamicPosts.forEach(post => post.remove());
-        // Adicionar posts dinâmicos (apenas título, data e assunto na lista)
+        // Adicionar posts dinâmicos (apenas título, data, assunto, categoria e tempo de leitura na lista)
         posts.forEach(post => {
             const article = document.createElement("article");
             article.className = "blog-post dynamic";
@@ -227,20 +287,25 @@ async function loadPosts(isCreatorMode = false) {
             article.style.color = post.textColor || "#000000";
             article.style.cursor = "pointer";
             
+            const category = post.category || "Sem categoria";
+            const readTime = post.readTime || "5";
+            
             let buttonsHtml = "";
             if (isCreatorMode) {
                 buttonsHtml = `<div style="margin-top: 1rem;">
-                    <button onclick="editPost('${post.id}')">Editar</button>
-                    <button onclick="deletePost('${post.id}')">Excluir</button>
+                    <button class="btn-read" onclick="event.stopPropagation(); editPost('${post.id}')">Editar</button>
+                    <button class="btn-read" onclick="event.stopPropagation(); deletePost('${post.id}')">Excluir</button>
                 </div>`;
             } else {
-                buttonsHtml = `<div style="margin-top: 1rem;"><button onclick="openPostDetail('${post.id}')">Ler Mais</button></div>`;
+                buttonsHtml = `<div style="margin-top: 1rem;"><button class="btn-read" onclick="event.stopPropagation(); openPostDetail('${post.id}')">Ler Mais</button></div>`;
             }
             
             article.innerHTML = `
                 <h3>${post.title}</h3>
                 <p><strong>Assunto:</strong> ${post.subject}</p>
-                <p><em>Data: ${post.date}</em></p>
+                <div style="font-size: 0.85rem; opacity: 0.8; margin: 0.5rem 0;">
+                    <span>📁 ${category}</span> | <span>⏱️ ${readTime} min</span> | <span>📅 ${post.date}</span>
+                </div>
                 ${buttonsHtml}
             `;
             article.style.cursor = isCreatorMode ? "default" : "pointer";
@@ -254,8 +319,12 @@ async function loadPosts(isCreatorMode = false) {
 async function savePost(title, content) {
     try {
         const subject = document.getElementById("post-subject").value;
+        const category = document.getElementById("post-category").value;
+        const readTime = parseInt(document.getElementById("post-read-time").value);
         const color = document.getElementById("post-color").value;
         const textColor = document.getElementById("post-text-color").value;
+        const textAlign = document.getElementById("post-text-align").value;
+        const imagePosition = document.getElementById("post-image-position").value;
         
         // Verificar se há arquivo enviado
         let image = document.getElementById("post-image-url").value;
@@ -277,9 +346,14 @@ async function savePost(title, content) {
                 title: title,
                 subject: subject,
                 content: content,
+                category: category,
+                readTime: readTime,
                 color: color,
                 image: image,
-                textColor: textColor
+                textColor: textColor,
+                textAlign: textAlign,
+                imagePosition: imagePosition,
+                likes: (await window.db.collection('posts').doc(editId).get()).data().likes || 0
             });
             form.removeAttribute("data-edit-id");
             alert("Post editado!");
@@ -289,11 +363,16 @@ async function savePost(title, content) {
                 title: title,
                 subject: subject,
                 content: content,
+                category: category,
+                readTime: readTime,
                 date: date,
                 timestamp: timestamp,
                 color: color,
                 image: image,
-                textColor: textColor
+                textColor: textColor,
+                textAlign: textAlign,
+                imagePosition: imagePosition,
+                likes: 0
             });
             alert("Post publicado!");
         }

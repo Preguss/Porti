@@ -210,6 +210,12 @@ footer {
     padding: 1rem;
     border-radius: 10px;
     margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.blog-posts .blog-post:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .blog-posts .blog-post h3 {

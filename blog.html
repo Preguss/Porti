@@ -59,6 +59,28 @@
                     <label for="post-content">Conteúdo:</label>
                     <textarea id="post-content" required></textarea>
                     
+                    <label for="post-category">Categoria:</label>
+                    <input type="text" id="post-category" placeholder="Ex: Técnico, Pessoal, Tutorial..." required>
+                    
+                    <label for="post-read-time">Tempo de Leitura (minutos):</label>
+                    <input type="number" id="post-read-time" min="1" value="5" required>
+                    
+                    <label>Alinhamento do Texto:</label>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                        <button type="button" onclick="setAlignment('left')" style="padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border: 2px solid #ccc; border-radius: 5px; cursor: pointer; color: var(--txt-principal);" title="Alinhar à esquerda">⬅️ Esquerda</button>
+                        <button type="button" onclick="setAlignment('center')" style="padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border: 2px solid #ccc; border-radius: 5px; cursor: pointer; color: var(--txt-principal);" title="Centralizar">⬇️ Centro</button>
+                        <button type="button" onclick="setAlignment('right')" style="padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border: 2px solid #ccc; border-radius: 5px; cursor: pointer; color: var(--txt-principal);" title="Alinhar à direita">➡️ Direita</button>
+                        <button type="button" onclick="setAlignment('justify')" style="padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border: 2px solid #ccc; border-radius: 5px; cursor: pointer; color: var(--txt-principal);" title="Justificar">⬎ Justificado</button>
+                        <input type="hidden" id="post-text-align" value="left">
+                    </div>
+                    
+                    <label>Posição da Imagem:</label>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                        <button type="button" onclick="setImagePosition('top')" style="padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border: 2px solid #ccc; border-radius: 5px; cursor: pointer; color: var(--txt-principal);" title="Imagem acima">⬆️ Acima</button>
+                        <button type="button" onclick="setImagePosition('bottom')" style="padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border: 2px solid #ccc; border-radius: 5px; cursor: pointer; color: var(--txt-principal);" title="Imagem abaixo">⬇️ Abaixo</button>
+                        <input type="hidden" id="post-image-position" value="top">
+                    </div>
+                    
                     <label for="post-image">Imagem:</label>
                     <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
                         <input type="file" id="post-image-file" accept="image/*" style="flex: 1;">
