@@ -33,20 +33,35 @@ function updatePreview() {
     const textColor = document.getElementById("post-text-color").value;
     const textAlign = document.getElementById("post-text-align").value;
     const imageAlign = document.getElementById("post-image-align").value;
+    const imagePosition = document.getElementById("post-image-position").value;
     
     preview.style.backgroundColor = bgColor;
     preview.style.color = textColor;
     
     let imageHtml = "";
     if (window.uploadedImageData) {
-        imageHtml = `<img src="${window.uploadedImageData}" alt="Preview" style="max-width: 200px; height: auto; margin: 0.5rem; border-radius: 5px; display: block; margin-left: ${imageAlign === 'left' ? '0' : imageAlign === 'right' ? 'auto' : 'auto'}; margin-right: ${imageAlign === 'left' ? 'auto' : imageAlign === 'right' ? '0' : 'auto'};">`;
+        let imgMargin = "";
+        if (imageAlign === "left") {
+            imgMargin = "margin-left: 0; margin-right: auto;";
+        } else if (imageAlign === "right") {
+            imgMargin = "margin-left: auto; margin-right: 0;";
+        } else {
+            imgMargin = "margin-left: auto; margin-right: auto;";
+        }
+        imageHtml = `<img src="${window.uploadedImageData}" alt="Preview" style="max-width: 200px; height: auto; margin: 0.5rem; border-radius: 5px; display: block; ${imgMargin}">`;
     }
     
-    preview.innerHTML = `
-        <h3 style="text-align: center; margin-bottom: 1rem;">${title}</h3>
-        ${imageHtml}
-        <p style="text-align: ${textAlign}; white-space: pre-wrap;">${content.substring(0, 200)}${content.length > 200 ? '...' : ''}</p>
-    `;
+    let previewContent = `<h3 style="text-align: center; margin-bottom: 1rem;">${title}</h3>`;
+    
+    if (imagePosition === "top") {
+        previewContent += imageHtml;
+        previewContent += `<p style="text-align: ${textAlign}; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;">${content.substring(0, 200)}${content.length > 200 ? '...' : ''}</p>`;
+    } else {
+        previewContent += `<p style="text-align: ${textAlign}; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;">${content.substring(0, 200)}${content.length > 200 ? '...' : ''}</p>`;
+        previewContent += imageHtml;
+    }
+    
+    preview.innerHTML = previewContent;
 }
 
 function setAlignment(align) {
@@ -238,12 +253,7 @@ async function openPostDetail(postId) {
             detailContent.style.color = post.textColor || "#000000";
             detailContent.style.textAlign = "left";
             
-            let contentHtml = "";
-            if (imagePosition === "top") {
-                contentHtml = imageHtml;
-            }
-            
-            contentHtml += `
+            let contentHtml = `
                 <div style="text-align: center; border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 1rem; margin-bottom: 1rem;">
                     <h2 style="margin: 0 0 0.5rem 0; font-size: 1.8rem;">${post.title}</h2>
                     <p style="margin: 0 0 0.8rem 0; font-size: 1.1rem; opacity: 0.9;">${post.subject}</p>
@@ -254,11 +264,12 @@ async function openPostDetail(postId) {
                 </div>
             `;
             
-            if (imagePosition === "bottom") {
-                contentHtml += `<div style="text-align: ${textAlign}; white-space: pre-wrap;">${post.content}</div>`;
+            if (imagePosition === "top") {
                 contentHtml += imageHtml;
+                contentHtml += `<div style="text-align: ${textAlign}; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;">${post.content}</div>`;
             } else {
-                contentHtml += `<div style="text-align: ${textAlign}; white-space: pre-wrap;">${post.content}</div>`;
+                contentHtml += `<div style="text-align: ${textAlign}; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;">${post.content}</div>`;
+                contentHtml += imageHtml;
             }
             
             detailContent.innerHTML = contentHtml;
