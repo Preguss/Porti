@@ -181,11 +181,53 @@ function clearPostDraft() {
     localStorage.removeItem('postDraft');
 }
 
+// Funções de autenticação facilitada
+function isLocalhost() {
+    const hostname = window.location.hostname;
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '' || hostname === '::1';
+}
+
+function hasRememberedAccess(type) {
+    const stored = localStorage.getItem(`remember_${type}`);
+    if (!stored) return false;
+    
+    const data = JSON.parse(stored);
+    const now = new Date().getTime();
+    
+    // Verifica se não expirou (30 dias)
+    if (now - data.timestamp > 30 * 24 * 60 * 60 * 1000) {
+        localStorage.removeItem(`remember_${type}`);
+        return false;
+    }
+    return true;
+}
+
+function rememberAccess(type) {
+    const data = {
+        timestamp: new Date().getTime()
+    };
+    localStorage.setItem(`remember_${type}`, JSON.stringify(data));
+}
+
 function accessBlog() {
     window.location.href = "blog.html";
 }
 
 function checkPassword() {
+    // Auto-login em localhost
+    if (isLocalhost()) {
+        document.getElementById("main-content").style.display = "block";
+        loadPosts(false);
+        return;
+    }
+    
+    // Verifica se tem acesso lembrado
+    if (hasRememberedAccess('blog')) {
+        document.getElementById("main-content").style.display = "block";
+        loadPosts(false);
+        return;
+    }
+    
     let attempts = 3;
     while (attempts > 0) {
         const password = prompt("Digite a senha para acessar o blog:");
@@ -195,6 +237,10 @@ function checkPassword() {
             return;
         }
         if (password === "2") {
+            // Pergunta se quer lembrar
+            if (confirm("Lembrar acesso neste dispositivo por 30 dias?")) {
+                rememberAccess('blog');
+            }
             document.getElementById("main-content").style.display = "block";
             loadPosts(false);
             return;
@@ -411,9 +457,31 @@ async function deletePost(postId) {
 }
 
 function enterCreatorMode() {
+    // Auto-login em localhost
+    if (isLocalhost()) {
+        document.getElementById("creator-mode").style.display = "block";
+        document.getElementById("blog-posts").style.display = "none";
+        document.getElementById("post-detail").style.display = "none";
+        loadPosts(true);
+        return;
+    }
+    
+    // Verifica se tem acesso lembrado
+    if (hasRememberedAccess('creator')) {
+        document.getElementById("creator-mode").style.display = "block";
+        document.getElementById("blog-posts").style.display = "none";
+        document.getElementById("post-detail").style.display = "none";
+        loadPosts(true);
+        return;
+    }
+    
     const password = prompt("Digite a senha do criador:");
     if (password === null) return;
     if (password === "9696") {
+        // Pergunta se quer lembrar
+        if (confirm("Lembrar acesso ao modo criador neste dispositivo por 30 dias?")) {
+            rememberAccess('creator');
+        }
         document.getElementById("creator-mode").style.display = "block";
         document.getElementById("blog-posts").style.display = "none";
         document.getElementById("post-detail").style.display = "none";
