@@ -194,7 +194,7 @@ function checkPassword() {
             window.location.href = "index.html";
             return;
         }
-        if (password === "9696") {
+        if (password === "2") {
             document.getElementById("main-content").style.display = "block";
             loadPosts(false);
             return;
