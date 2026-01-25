@@ -1,0 +1,14 @@
+# Color extraction tools
+color_extractor.html
+extract_colors.py
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+node_modules/
