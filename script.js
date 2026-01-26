@@ -55,9 +55,9 @@ function updatePreview() {
     
     if (imagePosition === "top") {
         previewContent += imageHtml;
-        previewContent += `<p style="text-align: ${textAlign}; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;">${content.substring(0, 200)}${content.length > 200 ? '...' : ''}</p>`;
+        previewContent += `<p style="text-align: ${textAlign}; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;">${content}</p>`;
     } else {
-        previewContent += `<p style="text-align: ${textAlign}; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;">${content.substring(0, 200)}${content.length > 200 ? '...' : ''}</p>`;
+        previewContent += `<p style="text-align: ${textAlign}; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;">${content}</p>`;
         previewContent += imageHtml;
     }
     
@@ -258,6 +258,7 @@ function checkPassword() {
 function showCreateForm() {
     document.getElementById("create-form").style.display = "block";
     document.getElementById("creator-posts").style.display = "none";
+    document.getElementById("blog-posts").style.display = "none";
     // Restaurar rascunho salvo
     restorePostDraftFromLocalStorage();
 }
