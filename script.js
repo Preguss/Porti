@@ -415,7 +415,10 @@ async function openPostDetail(postId) {
             detailContent.innerHTML = contentHtml;
             document.getElementById("blog-posts").style.display = "none";
             document.getElementById("post-detail").style.display = "block";
-            document.querySelector(".hero").style.display = "none";
+            const heroElement = document.querySelector(".hero");
+            if (heroElement) {
+                heroElement.style.display = "none";
+            }
         }
     } catch (error) {
         console.error("Erro ao abrir post:", error);
@@ -425,7 +428,10 @@ async function openPostDetail(postId) {
 function closePostDetail() {
     document.getElementById("post-detail").style.display = "none";
     document.getElementById("blog-posts").style.display = "block";
-    document.querySelector(".hero").style.display = "block";
+    const heroElement = document.querySelector(".hero");
+    if (heroElement) {
+        heroElement.style.display = "block";
+    }
     currentPostId = null;
 }
 
@@ -559,7 +565,7 @@ function cancelEdit() {
     updatePreview();
     document.getElementById("creator-posts").style.display = "block";
 }
-}
+
 
 async function loadPosts(isCreatorMode = false) {
     try {
