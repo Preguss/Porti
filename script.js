@@ -220,6 +220,7 @@ function rememberAccess(type) {
 
 function accessBlog() {
     window.location.href = "blog.html";
+    return false;
 }
 
 function checkPassword() {
