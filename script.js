@@ -485,6 +485,12 @@ async function deletePost(postId) {
 }
 
 function enterCreatorMode() {
+    // Esconder hero no modo criador
+    const heroElement = document.querySelector(".hero");
+    if (heroElement) {
+        heroElement.style.display = "none";
+    }
+    
     // Auto-login em localhost
     if (isLocalhost()) {
         document.getElementById("creator-mode").style.display = "block";
@@ -508,7 +514,14 @@ function enterCreatorMode() {
     }
     
     const password = prompt("Digite a senha do criador:");
-    if (password === null) return;
+    if (password === null) {
+        // Se cancelar a senha, mostrar hero novamente
+        const heroElement = document.querySelector(".hero");
+        if (heroElement) {
+            heroElement.style.display = "block";
+        }
+        return;
+    }
     if (password === "9696") {
         // Pergunta se quer lembrar
         if (confirm("Lembrar acesso ao modo criador neste dispositivo por 30 dias?")) {
@@ -522,10 +535,21 @@ function enterCreatorMode() {
         loadPosts(true);
     } else {
         alert("Senha incorreta!");
+        // Se senha errada, mostrar hero novamente
+        const heroElement = document.querySelector(".hero");
+        if (heroElement) {
+            heroElement.style.display = "block";
+        }
     }
 }
 
 function exitCreatorMode() {
+    // Mostrar hero ao sair do modo criador
+    const heroElement = document.querySelector(".hero");
+    if (heroElement) {
+        heroElement.style.display = "block";
+    }
+    
     document.getElementById("creator-mode").style.display = "none";
     document.getElementById("blog-posts").style.display = "block";
     document.getElementById("create-form").style.display = "none";
