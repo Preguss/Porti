@@ -463,6 +463,8 @@ function enterCreatorMode() {
         document.getElementById("creator-mode").style.display = "block";
         document.getElementById("blog-posts").style.display = "none";
         document.getElementById("post-detail").style.display = "none";
+        document.getElementById("create-form").style.display = "none";
+        document.getElementById("creator-posts").style.display = "block";
         loadPosts(true);
         return;
     }
@@ -472,6 +474,8 @@ function enterCreatorMode() {
         document.getElementById("creator-mode").style.display = "block";
         document.getElementById("blog-posts").style.display = "none";
         document.getElementById("post-detail").style.display = "none";
+        document.getElementById("create-form").style.display = "none";
+        document.getElementById("creator-posts").style.display = "block";
         loadPosts(true);
         return;
     }
@@ -486,6 +490,8 @@ function enterCreatorMode() {
         document.getElementById("creator-mode").style.display = "block";
         document.getElementById("blog-posts").style.display = "none";
         document.getElementById("post-detail").style.display = "none";
+        document.getElementById("create-form").style.display = "none";
+        document.getElementById("creator-posts").style.display = "block";
         loadPosts(true);
     } else {
         alert("Senha incorreta!");
@@ -503,6 +509,7 @@ function exitCreatorMode() {
 function showCreateForm() {
     document.getElementById("create-form").style.display = "block";
     document.getElementById("creator-posts").style.display = "none";
+    document.getElementById("blog-posts").style.display = "none";
 }
 
 function viewCreatorPosts() {
@@ -537,23 +544,27 @@ async function loadPosts(isCreatorMode = false) {
     try {
         const querySnapshot = await window.db.collection('posts').orderBy('timestamp', 'desc').get();
         const posts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const blogPostsSection = document.getElementById("blog-posts");
-        // Limpar posts dinâmicos anteriores
-        const dynamicPosts = blogPostsSection.querySelectorAll('.blog-post.dynamic');
+        const listEl = isCreatorMode ? document.getElementById("creator-posts") : document.getElementById("blog-posts");
+
+        if (!listEl) return;
+
+        // Mostrar lista correta e limpar itens anteriores
+        listEl.style.display = "block";
+        const dynamicPosts = listEl.querySelectorAll('.blog-post.dynamic');
         dynamicPosts.forEach(post => post.remove());
-        // Adicionar posts dinâmicos (apenas título, data, assunto e categoria na lista)
+
         posts.forEach(post => {
             const article = document.createElement("article");
-            article.className = "blog-post dynamic";
+            article.className = isCreatorMode ? "blog-post dynamic creator" : "blog-post dynamic";
             article.style.backgroundColor = post.color || "#ffffff";
             article.style.color = post.textColor || "#000000";
-            article.style.cursor = "pointer";
+            article.style.cursor = isCreatorMode ? "default" : "pointer";
             
             const category = post.category || "Sem categoria";
             
             let buttonsHtml = "";
             if (isCreatorMode) {
-                buttonsHtml = `<div style="margin-top: 1rem;">
+                buttonsHtml = `<div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
                     <button class="btn-read" onclick="event.stopPropagation(); editPost('${post.id}')">Editar</button>
                     <button class="btn-read" onclick="event.stopPropagation(); deletePost('${post.id}')">Excluir</button>
                 </div>`;
@@ -569,8 +580,7 @@ async function loadPosts(isCreatorMode = false) {
                 </div>
                 ${buttonsHtml}
             `;
-            article.style.cursor = isCreatorMode ? "default" : "pointer";
-            blogPostsSection.appendChild(article);
+            listEl.appendChild(article);
         });
     } catch (error) {
         console.error("Erro ao carregar posts:", error);
