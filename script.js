@@ -33,6 +33,7 @@ function updatePreview() {
     const textColor = document.getElementById("post-text-color").value;
     const textAlign = document.getElementById("post-text-align").value;
     const imageAlign = document.getElementById("post-image-align").value;
+    const imageSize = document.getElementById("post-image-size").value || "medium";
     const imagePosition = document.getElementById("post-image-position").value;
     
     preview.style.backgroundColor = bgColor;
@@ -48,7 +49,15 @@ function updatePreview() {
         } else {
             imgMargin = "margin-left: auto; margin-right: auto;";
         }
-        imageHtml = `<img src="${window.uploadedImageData}" alt="Preview" style="max-width: 200px; height: auto; margin: 0.5rem; border-radius: 5px; display: block; ${imgMargin}">`;
+
+        const sizeMap = {
+            small: "200px",
+            medium: "320px",
+            large: "480px"
+        };
+        const maxWidth = sizeMap[imageSize] || "320px";
+
+        imageHtml = `<img src="${window.uploadedImageData}" alt="Preview" style="max-width: ${maxWidth}; height: auto; margin: 0.5rem; border-radius: 5px; display: block; ${imgMargin}">`;
     }
     
     let previewContent = `<h3 style="text-align: center; margin-bottom: 1rem;">${title}</h3>`;
@@ -320,6 +329,7 @@ async function editPost(postId) {
             document.getElementById("post-text-align").value = post.textAlign || "left";
             document.getElementById("post-image-position").value = post.imagePosition || "top";
             document.getElementById("post-image-align").value = post.imageAlign || "center";
+            document.getElementById("post-image-size").value = post.imageSize || "medium";
             document.getElementById("post-image-file").value = "";
             document.getElementById("post-image-url").value = post.image || "";
             window.uploadedImageData = null;
@@ -357,11 +367,18 @@ async function openPostDetail(postId) {
             const textAlign = post.textAlign || "left";
             const imagePosition = post.imagePosition || "top";
             const imageAlign = post.imageAlign || "center";
+            const imageSize = post.imageSize || "medium";
             const category = post.category || "Sem categoria";
             
             let imageHtml = "";
             if (post.image) {
-                let imgStyle = "max-width: 100%; height: auto; margin: 1rem 0; border-radius: 8px; display: block;";
+                const sizeMap = {
+                    small: "200px",
+                    medium: "320px",
+                    large: "480px"
+                };
+                const maxWidth = sizeMap[imageSize] || "320px";
+                let imgStyle = `max-width: ${maxWidth}; height: auto; margin: 1rem 0; border-radius: 8px; display: block;`;
                 if (imageAlign === "left") {
                     imgStyle += " margin-left: 0; margin-right: auto;";
                 } else if (imageAlign === "right") {
@@ -425,6 +442,7 @@ async function editPost(postId) {
             document.getElementById("post-text-align").value = post.textAlign || "left";
             document.getElementById("post-image-position").value = post.imagePosition || "top";
             document.getElementById("post-image-align").value = post.imageAlign || "center";
+            document.getElementById("post-image-size").value = post.imageSize || "medium";
             
             if (post.image) {
                 document.getElementById("post-image-url").value = post.image;
@@ -616,6 +634,7 @@ async function savePost(title, content) {
         const textAlign = document.getElementById("post-text-align").value;
         const imagePosition = document.getElementById("post-image-position").value;
         const imageAlign = document.getElementById("post-image-align").value;
+        const imageSize = document.getElementById("post-image-size").value || "medium";
         
         // Verificar se há arquivo enviado
         let image = document.getElementById("post-image-url").value;
@@ -642,7 +661,8 @@ async function savePost(title, content) {
                 textColor: textColor,
                 textAlign: textAlign,
                 imagePosition: imagePosition,
-                imageAlign: imageAlign
+                imageAlign: imageAlign,
+                imageSize: imageSize
             });
             form.removeAttribute("data-edit-id");
             clearPostDraft();
@@ -661,7 +681,8 @@ async function savePost(title, content) {
                 textColor: textColor,
                 textAlign: textAlign,
                 imagePosition: imagePosition,
-                imageAlign: imageAlign
+                imageAlign: imageAlign,
+                imageSize: imageSize
             });
             clearPostDraft();
             alert("Post publicado!");
